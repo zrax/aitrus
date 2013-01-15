@@ -160,13 +160,19 @@ class hubber:
                 }
 
     def check_pulls(self):
-        self.htclient.request('GET', '/repos/%s/pulls?state=open' % (self.repo),
-                              headers=self.headers)
-        reply = self.htclient.getresponse()
+        try:
+            self.htclient.request('GET', '/repos/%s/pulls?state=open' % (self.repo),
+                                  headers=self.headers)
+            reply = self.htclient.getresponse()
+        except Exception as e:
+            print('Error fetching new pull requests:')
+            print(str(e))
+            return
         if reply.status != 200:
-            print('Error fetching new pull requests')
+            print('Error fetching new pull requests:')
             print(reply.headers)
             print(reply.read())
+            return
         jdata = json.loads(str(reply.read(), 'utf8'))
 
         watch = set(self.pulls.keys())
@@ -194,6 +200,7 @@ class hubber:
                 print('Error fetching pull request %d' % pull)
                 print(reply.headers)
                 print(reply.read())
+                continue
             jdata = json.loads(str(reply.read(), 'utf8'))
 
             if jdata['merged']:
@@ -207,13 +214,19 @@ class hubber:
             del self.pulls[pull]
 
     def check_issues(self):
-        self.htclient.request('GET', '/repos/%s/issues?state=open' % (self.repo),
-                              headers=self.headers)
-        reply = self.htclient.getresponse()
+        try:
+            self.htclient.request('GET', '/repos/%s/issues?state=open' % (self.repo),
+                                  headers=self.headers)
+            reply = self.htclient.getresponse()
+        except Exception as e:
+            print('Error fetching new issues:')
+            print(str(e))
+            return
         if reply.status != 200:
-            print('Error fetching new issues')
+            print('Error fetching new issues:')
             print(reply.headers)
             print(reply.read())
+            return
         jdata = json.loads(str(reply.read(), 'utf8'))
 
         watch = set(self.issues.keys())
