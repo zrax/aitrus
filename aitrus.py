@@ -118,9 +118,15 @@ class hubber:
         self.issues = {}
         self.irc = irc
 
-        self.htclient = http.client.HTTPSConnection('api.github.com')
         authkey = base64.b64encode(bytes('%s:%s' % (username, password), 'utf8')).decode('ascii')
-        self.headers = { 'Authorization': 'Basic ' + authkey }
+        self.headers = {
+            'Authorization': 'Basic ' + authkey,
+            'User-Agent': 'aitrus'
+            }
+        self.reconnect()
+
+    def reconnect(self):
+        self.htclient = http.client.HTTPSConnection('api.github.com', timeout=30)
 
     def init_db(self):
         self.htclient.request('GET', '/repos/%s/pulls?state=open' % (self.repo),
@@ -167,11 +173,13 @@ class hubber:
         except Exception as e:
             print('Error fetching new pull requests:')
             print(str(e))
+            self.reconnect()
             return
         if reply.status != 200:
             print('Error fetching new pull requests:')
             print(reply.headers)
             print(reply.read())
+            self.reconnect()
             return
         jdata = json.loads(str(reply.read(), 'utf8'))
 
@@ -200,6 +208,7 @@ class hubber:
                 print('Error fetching pull request %d' % pull)
                 print(reply.headers)
                 print(reply.read())
+                self.reconnect()
                 continue
             jdata = json.loads(str(reply.read(), 'utf8'))
 
@@ -221,11 +230,13 @@ class hubber:
         except Exception as e:
             print('Error fetching new issues:')
             print(str(e))
+            self.reconnect()
             return
         if reply.status != 200:
             print('Error fetching new issues:')
             print(reply.headers)
             print(reply.read())
+            self.reconnect()
             return
         jdata = json.loads(str(reply.read(), 'utf8'))
 
