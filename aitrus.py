@@ -50,6 +50,9 @@ class ircbot:
                         sys.exit(1)
                     self.connect()
                     continue
+            except UnicodeDecodeError:
+                # Didn't really care about the data anyway
+                continue
 
             for hub in self.inqueue:
                 self.sendMsg('#' + self.channel, hub)
